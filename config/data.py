@@ -90,6 +90,10 @@ if os.path.exists(CONFIG_FILE):
         "dock_hide_special_workspace_apps", True
     )
 
+    DOCK_PREVIEW_APPS = config.get("dock_preview_apps", False)
+    MATUGEN_ENABLED = config.get("matugen_enabled", True)
+    PANEL_CLOCK_FORMAT = config.get("panel_clock_format", "12-hour")
+
     NOTIFICATION_TIMEOUT_STR = config.get("notification_timeout", "5s")
     NOTIFICATION_TIMEOUT = parse_timeout_string(NOTIFICATION_TIMEOUT_STR)
     NOTIFICATION_IGNORED_APPS_HISTORY = config.get(
@@ -108,9 +112,12 @@ else:
     TERMINAL_COMMAND = "kitty -e"
     DOCK_THEME = "Pills"
     DOCK_ICON_SIZE = 60
+    DOCK_PREVIEW_APPS = False
     WINDOW_SWITCHER_ITEMS_PER_ROW = 10
     HIDE_SPECIAL_WORKSPACE = True
     DOCK_HIDE_SPECIAL_WORKSPACE_APPS = True
+    MATUGEN_ENABLED = True
+    PANEL_CLOCK_FORMAT = "12-hour"
 
     NOTIFICATION_TIMEOUT_STR = "5s"
     NOTIFICATION_TIMEOUT = parse_timeout_string(NOTIFICATION_TIMEOUT_STR)
