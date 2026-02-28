@@ -83,7 +83,7 @@ if os.path.exists(CONFIG_FILE):
     DOCK_ENABLED = config.get("dock_enabled", True)
     DOCK_AUTO_HIDE = config.get("dock_auto_hide", True)
     DOCK_ALWAYS_OCCLUDED = config.get("dock_always_occluded", False)
-    DOCK_ICON_SIZE = config.get("dock_icon_size", 60)
+    DOCK_ICON_SIZE = config.get("dock_icon_size", 52)
     WINDOW_SWITCHER_ITEMS_PER_ROW = config.get("window_switcher_items_per_row", 10)
     HIDE_SPECIAL_WORKSPACE = config.get("hide_special_workspace", True)
     DOCK_HIDE_SPECIAL_WORKSPACE_APPS = config.get(
@@ -111,7 +111,7 @@ else:
     DOCK_AUTO_HIDE = True
     TERMINAL_COMMAND = "kitty -e"
     DOCK_THEME = "Pills"
-    DOCK_ICON_SIZE = 60
+    DOCK_ICON_SIZE = 52
     DOCK_PREVIEW_APPS = False
     WINDOW_SWITCHER_ITEMS_PER_ROW = 10
     HIDE_SPECIAL_WORKSPACE = True

@@ -74,7 +74,7 @@ pip install --no-deps git+https://github.com/Fabric-Development/fabric.git
 - [x] Music Player
 - [x] Desktop Widgets
 - [x] New Launcher (like Spotlight)
-- [ ] Settings
+- [x] Settings
 - [x] ~~Magnifier hover effect on Dock~~
 - [x] ~~New Application Switcher~~
 - [x] Panel Widget
