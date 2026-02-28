@@ -8,17 +8,52 @@
   border-radius: 1.25rem;
 }
 
-#settings-root {
+#settings-outer {
   border-radius: 1.25rem;
+}
+
+#settings-root {
+  border-radius: 0 0 1.25rem 1.25rem;
+}
+
+/* ── macOS-style title bar ───────────────────────────────────────── */
+#settings-titlebar {
+  background-color: alpha(#000, 0.22);
+  border-radius: 1.25rem 1.25rem 0 0;
+  min-height: 38px;
+  padding: 0 8px;
+}
+
+#settings-titlebar-close {
+  background-color: #ff5f57;
+  border-radius: 50%;
+  min-width: 13px;
+  min-height: 13px;
+  padding: 0;
+  border: none;
+  transition: background-color 120ms ease;
+}
+
+#settings-titlebar-close:hover {
+  background-color: #ff3b30;
+}
+
+#settings-titlebar-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: alpha(#fff, 0.85);
+}
+
+#settings-title-separator {
+  background-color: alpha(#fff, 0.09);
+  min-height: 1px;
 }
 
 /* ── Sidebar ─────────────────────────────────────────────────────── */
 #settings-sidebar {
   background-color: alpha(#000, 0.18);
-  min-width: 170px;
-  border-top-left-radius: 1.25rem;
+  min-width: 190px;
   border-bottom-left-radius: 1.25rem;
-  padding: 8px 0;
 }
 
 #settings-separator {
@@ -26,11 +61,28 @@
   min-width: 1px;
 }
 
+/* ── Search ──────────────────────────────────────────────────────── */
+#settings-search {
+  background-color: alpha(#fff, 0.07);
+  border-radius: 8px;
+  border: 1px solid alpha(#fff, 0.12);
+  padding: 5px 10px;
+  font-size: 12px;
+  color: #e4e1e9;
+  min-width: 155px;
+}
+
+#settings-search:focus {
+  border-color: alpha(#bec2ff, 0.5);
+  background-color: alpha(#fff, 0.1);
+}
+
+/* ── Nav buttons ─────────────────────────────────────────────────── */
 #settings-nav-button {
   background-color: transparent;
   border-radius: 8px;
   padding: 6px 12px;
-  margin: 1px 6px;
+  margin: 1px 0;
   transition: background-color 150ms ease;
 }
 
@@ -43,8 +95,8 @@
 }
 
 #settings-nav-icon {
-  font-size: 18px;
-  min-width: 24px;
+  font-size: 16px;
+  min-width: 22px;
 }
 
 #settings-nav-label {
@@ -135,9 +187,13 @@
 }
 
 /* ── Action bar ──────────────────────────────────────────────────── */
+#settings-action-separator {
+  background-color: alpha(#fff, 0.08);
+  min-height: 1px;
+}
+
 #settings-action-bar {
-  padding: 8px 16px;
-  border-top: 1px solid alpha(#fff, 0.1);
+  padding: 10px 16px;
   background-color: alpha(#000, 0.12);
   border-bottom-right-radius: 1.25rem;
 }
@@ -157,6 +213,38 @@
   font-size: 12px;
   font-weight: 600;
   color: #fff;
+}
+
+#settings-cancel-button {
+  background-color: alpha(#fff, 0.1);
+  border-radius: 7px;
+  padding: 5px 14px;
+  transition: background-color 150ms ease;
+}
+
+#settings-cancel-button:hover {
+  background-color: alpha(#fff, 0.18);
+}
+
+#settings-cancel-button label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+#settings-reset-button {
+  background-color: transparent;
+  border-radius: 7px;
+  padding: 5px 10px;
+  transition: background-color 150ms ease;
+}
+
+#settings-reset-button:hover {
+  background-color: alpha(#fff, 0.08);
+}
+
+#settings-reset-button label {
+  font-size: 11px;
+  color: alpha(#fff, 0.55);
 }
 
 #settings-status-label {
