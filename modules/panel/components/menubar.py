@@ -10,6 +10,7 @@ from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.label import Label
 
 from modules.about import About, AboutApp
+from modules.settings import Settings
 from utils.roam import modus_service
 from widgets.dropdown import ModusDropdown, dropdown_divider
 from widgets.mousecapture import DropDownMouseCapture
@@ -103,6 +104,7 @@ def dropdown_option(
 
 class SystemDropdown(ModusDropdown):
     def __init__(self, parent, **kwargs):
+        self._settings = Settings()
         super().__init__(
             dropdown_id="os-menu",
             parent=parent,
@@ -113,8 +115,7 @@ class SystemDropdown(ModusDropdown):
                 dropdown_divider("---------------------"),
                 dropdown_option(
                     "System Settings...",
-                    # TODO: Open Modus own setting
-                    # on_click="xdg-open settings",
+                    on_clicked=lambda _: self._settings.toggle(),
                 ),
                 dropdown_divider("---------------------"),
                 dropdown_option("Force Quit", "", "hyprctl kill"),

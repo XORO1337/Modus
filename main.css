@@ -15,6 +15,7 @@
 @import url("./styles/battery-widget.css");
 @import url("./styles/lock.css");
 @import url("./styles/todo.css");
+@import url("./styles/settings.css");
 
 * {
   all: unset;
