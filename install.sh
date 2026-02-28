@@ -64,6 +64,11 @@ PACKAGES=(
     power-profiles-daemon
     uwsm
     cinnamon-desktop
+    # --- Added for VPN and video wallpaper support ---
+    networkmanager
+    nmcli
+    python-dbus
+    mpvpaper
 )
 
 # Colors and formatting

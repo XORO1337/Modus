@@ -1,5 +1,6 @@
 import json
 import os
+from utils.vpn import connect_vpn, disconnect_vpn
 
 import gi
 
@@ -10,6 +11,8 @@ from fabric.utils.helpers import get_relative_path
 
 CONFIG_FILE = get_relative_path("../config/assets/config.json")
 
+VPN_STATUSES = ["Disconnected", "Connecting", "Connected"]
+
 CATEGORIES = [
     ("General", "🔧"),
     ("Appearance", "🎨"),
@@ -17,6 +20,7 @@ CATEGORIES = [
     ("Panel", "📊"),
     ("Dock", "🚢"),
     ("Notifications", "🔔"),
+    ("VPN", "🔒"),
 ]
 
 DOCK_POSITIONS = ["Bottom", "Top", "Left", "Right"]
@@ -85,15 +89,56 @@ class Settings(Gtk.Window):
         close_btn.connect("clicked", lambda *_: self.hide())
         title_bar.pack_start(close_btn, False, False, 12)
 
+        # Reload config icon button
+        reload_btn = Gtk.Button()
+        reload_btn.set_name("settings-titlebar-reload")
+        reload_btn.set_relief(Gtk.ReliefStyle.NONE)
+        reload_btn.set_tooltip_text("Reload config")
+        reload_icon = Gtk.Label(label="⟳")  # Unicode reload icon
+        reload_icon.set_name("settings-titlebar-reload-icon")
+        reload_btn.add(reload_icon)
+        reload_btn.connect("clicked", self._on_reload_config)
+        title_bar.pack_start(reload_btn, False, False, 8)
+
         title_lbl = Gtk.Label(label="System Settings")
         title_lbl.set_name("settings-titlebar-label")
         title_lbl.set_hexpand(True)
         title_bar.pack_start(title_lbl, True, True, 0)
 
-        # Spacer to balance the close button
+        # Spacer to balance the close button and reload button
         spacer = Gtk.Box()
         spacer.set_size_request(32, 1)
         title_bar.pack_end(spacer, False, False, 12)
+    def _on_reload_config(self, button):
+        config = _load_config()
+        # Update all widgets with the latest config values
+        # General
+        self._widgets["terminal_command"].set_text(config.get("terminal_command", _DEFAULTS["terminal_command"]))
+        self._widgets["window_switcher_items_per_row"].set_value(config.get("window_switcher_items_per_row", _DEFAULTS["window_switcher_items_per_row"]))
+        self._widgets["hide_special_workspace"].set_active(config.get("hide_special_workspace", _DEFAULTS["hide_special_workspace"]))
+        # Appearance
+        self._widgets["matugen_enabled"].set_active(config.get("matugen_enabled", _DEFAULTS["matugen_enabled"]))
+        # Wallpaper
+        self._widgets["wallpapers_dir"].set_text(config.get("wallpapers_dir", _DEFAULTS["wallpapers_dir"]))
+        # Panel
+        fmt = config.get("panel_clock_format", _DEFAULTS["panel_clock_format"])
+        self._widgets["panel_clock_format"].set_active(CLOCK_FORMATS.index(fmt) if fmt in CLOCK_FORMATS else 0)
+        # Dock
+        pos = config.get("dock_position", _DEFAULTS["dock_position"])
+        self._widgets["dock_position"].set_active(DOCK_POSITIONS.index(pos) if pos in DOCK_POSITIONS else 0)
+        self._widgets["dock_enabled"].set_active(config.get("dock_enabled", _DEFAULTS["dock_enabled"]))
+        self._widgets["dock_auto_hide"].set_active(config.get("dock_auto_hide", _DEFAULTS["dock_auto_hide"]))
+        self._widgets["dock_always_occluded"].set_active(config.get("dock_always_occluded", _DEFAULTS["dock_always_occluded"]))
+        self._widgets["dock_icon_size"].set_value(config.get("dock_icon_size", _DEFAULTS["dock_icon_size"]))
+        self._widgets["dock_preview_apps"].set_active(config.get("dock_preview_apps", _DEFAULTS["dock_preview_apps"]))
+        self._widgets["dock_hide_special_workspace_apps"].set_active(config.get("dock_hide_special_workspace_apps", _DEFAULTS["dock_hide_special_workspace_apps"]))
+        # Notifications
+        self._widgets["notification_timeout"].set_text(config.get("notification_timeout", _DEFAULTS["notification_timeout"]))
+        ignored_val = config.get("notification_ignored_apps_history", _DEFAULTS["notification_ignored_apps_history"])
+        self._widgets["notification_ignored_apps_history"].set_text(", ".join(ignored_val) if ignored_val else "")
+        limited_val = config.get("notification_limited_apps_history", _DEFAULTS["notification_limited_apps_history"])
+        self._widgets["notification_limited_apps_history"].set_text(", ".join(limited_val) if limited_val else "")
+        self._status_label.set_text("Config reloaded ✓")
 
         outer.pack_start(title_bar, False, False, 0)
 
@@ -164,6 +209,123 @@ class Settings(Gtk.Window):
         self._stack.add_named(self._build_panel_page(config), "Panel")
         self._stack.add_named(self._build_dock_page(config), "Dock")
         self._stack.add_named(self._build_notifications_page(config), "Notifications")
+        self._stack.add_named(self._build_vpn_page(config), "VPN")
+    def _build_vpn_page(self, config):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        box.set_name("settings-page")
+        box.set_margin_top(16)
+        box.set_margin_start(16)
+        box.set_margin_end(16)
+
+        box.pack_start(self._section_label("VPN Settings"), False, False, 0)
+
+        vpn_server_entry = Gtk.Entry()
+        vpn_server_entry.set_name("settings-entry")
+        vpn_server_entry.set_text(config.get("vpn_server", ""))
+        vpn_server_entry.set_width_chars(32)
+        self._widgets["vpn_server"] = vpn_server_entry
+        box.pack_start(
+            self._row(
+                "VPN Server",
+                vpn_server_entry,
+                "Enter the VPN server address (e.g. vpn.example.com)",
+            ),
+            False, False, 0,
+        )
+
+        vpn_username_entry = Gtk.Entry()
+        vpn_username_entry.set_name("settings-entry")
+        vpn_username_entry.set_text(config.get("vpn_username", ""))
+        vpn_username_entry.set_width_chars(24)
+        self._widgets["vpn_username"] = vpn_username_entry
+        box.pack_start(
+            self._row(
+                "Username",
+                vpn_username_entry,
+                "VPN login username",
+            ),
+            False, False, 0,
+        )
+
+        vpn_password_entry = Gtk.Entry()
+        vpn_password_entry.set_name("settings-entry")
+        vpn_password_entry.set_visibility(False)
+        vpn_password_entry.set_text(config.get("vpn_password", ""))
+        vpn_password_entry.set_width_chars(24)
+        self._widgets["vpn_password"] = vpn_password_entry
+        box.pack_start(
+            self._row(
+                "Password",
+                vpn_password_entry,
+                "VPN login password",
+            ),
+            False, False, 0,
+        )
+
+        vpn_status_combo = Gtk.ComboBoxText()
+        vpn_status_combo.set_name("settings-combo")
+        for status in VPN_STATUSES:
+            vpn_status_combo.append_text(status)
+        current_status = config.get("vpn_status", "Disconnected")
+        vpn_status_combo.set_active(
+            VPN_STATUSES.index(current_status) if current_status in VPN_STATUSES else 0
+        )
+        self._widgets["vpn_status"] = vpn_status_combo
+        box.pack_start(
+            self._row(
+                "VPN Status",
+                vpn_status_combo,
+                "Current VPN connection status",
+            ),
+            False, False, 0,
+        )
+
+        connect_btn = Gtk.Button(label="Connect")
+        connect_btn.set_name("settings-vpn-connect-button")
+        connect_btn.connect("clicked", self._on_vpn_connect)
+        box.pack_start(connect_btn, False, False, 8)
+
+        disconnect_btn = Gtk.Button(label="Disconnect")
+        disconnect_btn.set_name("settings-vpn-disconnect-button")
+        disconnect_btn.connect("clicked", self._on_vpn_disconnect)
+        box.pack_start(disconnect_btn, False, False, 8)
+
+        return self._make_scrolled_page(box)
+
+    def _on_vpn_connect(self, button):
+        config = _load_config()
+        server = self._widgets["vpn_server"].get_text().strip()
+        username = self._widgets["vpn_username"].get_text().strip()
+        password = self._widgets["vpn_password"].get_text().strip()
+        config["vpn_server"] = server
+        config["vpn_username"] = username
+        config["vpn_password"] = password
+        config["vpn_status"] = "Connecting"
+        _save_config(config)
+        self._widgets["vpn_status"].set_active(VPN_STATUSES.index("Connecting"))
+        self._status_label.set_text("Connecting to VPN…")
+        success, msg = connect_vpn(server, username, password)
+        if success:
+            config["vpn_status"] = "Connected"
+            self._widgets["vpn_status"].set_active(VPN_STATUSES.index("Connected"))
+            self._status_label.set_text("VPN connected ✓")
+        else:
+            config["vpn_status"] = "Disconnected"
+            self._widgets["vpn_status"].set_active(VPN_STATUSES.index("Disconnected"))
+            self._status_label.set_text(f"VPN connect failed: {msg}")
+        _save_config(config)
+
+    def _on_vpn_disconnect(self, button):
+        config = _load_config()
+        server = self._widgets["vpn_server"].get_text().strip()
+        success, msg = disconnect_vpn(server)
+        config["vpn_status"] = "Disconnected"
+        _save_config(config)
+        self._widgets["vpn_status"].set_active(VPN_STATUSES.index("Disconnected"))
+        if success:
+            self._status_label.set_text("VPN disconnected ✓")
+        else:
+            self._status_label.set_text(f"VPN disconnect failed: {msg}")
 
         # --- Save / Apply bar ---
         action_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
@@ -414,7 +576,46 @@ class Settings(Gtk.Window):
 
         box.pack_start(dir_row, False, False, 0)
 
+        # --- mpvpaper video wallpaper option ---
+        box.pack_start(self._section_label("Video Wallpaper (mpvpaper)"), False, False, 12)
+
+        video_entry = Gtk.Entry()
+        video_entry.set_name("settings-entry")
+        video_entry.set_text(config.get("video_wallpaper", ""))
+        video_entry.set_width_chars(32)
+        self._widgets["video_wallpaper"] = video_entry
+        box.pack_start(
+            self._row(
+                "Video file path",
+                video_entry,
+                "Set a video file to use as wallpaper (requires mpvpaper)",
+            ),
+            False, False, 0,
+        )
+
+        mpvpaper_btn = Gtk.Button(label="Set Video Wallpaper")
+        mpvpaper_btn.set_name("settings-mpvpaper-button")
+        mpvpaper_btn.connect("clicked", self._on_set_video_wallpaper)
+        box.pack_start(mpvpaper_btn, False, False, 8)
+
         return self._make_scrolled_page(box)
+
+    def _on_set_video_wallpaper(self, button):
+        video_path = self._widgets["video_wallpaper"].get_text().strip()
+        if not video_path:
+            self._status_label.set_text("Please enter a video file path.")
+            return
+        # Save to config
+        config = _load_config()
+        config["video_wallpaper"] = video_path
+        _save_config(config)
+        # Launch mpvpaper
+        import subprocess
+        try:
+            subprocess.Popen(["mpvpaper", "eDP-1", video_path])
+            self._status_label.set_text("Video wallpaper set ✓")
+        except Exception as e:
+            self._status_label.set_text(f"Failed to set video wallpaper: {e}")
 
     def _on_browse_wallpapers(self, button, entry):
         dialog = Gtk.FileChooserDialog(

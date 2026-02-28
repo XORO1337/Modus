@@ -22,6 +22,7 @@ from modules.controlcenter.nightlight import create_night_light_widget
 from modules.controlcenter.per_app_volume import PerAppVolumeControl
 from modules.controlcenter.player import PlayerBoxStack
 from modules.controlcenter.wifi import WifiConnections
+from modules.controlcenter.vpn import VPNWidget
 from services.brightness import Brightness
 from services.mpris import MprisPlayerManager
 from services.network import NetworkClient
@@ -243,6 +244,8 @@ class ModusControlCenter(Window):
                 ),
             ],
         )
+
+        self.vpn_widget = VPNWidget()
 
         self.focus_icon = Svg(
             name="focus-icon",
